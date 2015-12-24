@@ -29,6 +29,14 @@ func check(e error) {
     }
 }
 
+func nest(s string) string {
+        hash := sha256.New()
+        hash.Write([]byte(s))
+        mdStr := hex.EncodeToString(hash.Sum(nil))
+        nest := mdStr[:1] + "/" + mdStr[1:2] + "/" + mdStr[2:3] + "/" + mdStr[3:4] + "/" + mdStr[4:5] + "/" + mdStr[5:6] + "/" + mdStr[6:len(mdStr)]
+        return nest
+}
+
 // If debug is true, errors parsing messages will be printed to stderr. If
 // false, they will be ignored. Either way those messages will not appear in
 // the msgs slice.
@@ -72,12 +80,12 @@ func Read(r io.Reader, path string, debug bool) (msgs []*mail.Message, err error
 // If debug is true, errors parsing messages will be printed to stderr. If
 // false, they will be ignored. Either way those messages will not appear in
 // the msgs slice.
-func ReadFile(filename string, debug bool) ([]*mail.Message, error) {
+func ReadFile(filename string, path string, debug bool) ([]*mail.Message, error) {
 	f, err := os.Open(filename)
 	if err != nil {
 		return nil, err
 	}
-	msgs, err := Read(f, debug)
+	msgs, err := Read(f, path, debug)
 	f.Close()
 	return msgs, err
 }

@@ -16,7 +16,6 @@ import (
 	"os"
 	"crypto/sha256"
 	"encoding/hex"
-	"io/ioutil"
 )
 
 const _MAX_LINE_LEN = 1024

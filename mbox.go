@@ -84,13 +84,15 @@ func ReadFile(filename string, path string, debug bool) ([]*mail.Message, error)
 }
 
 func parseAndAppend(mbuf *bytes.Buffer, msgs []*mail.Message, path string, debug bool) []*mail.Message {
+	f,_ := os.Create("/tmp/orig")
+        defer f.Close()
+        mbuf.WriteTo(f)
+	
 	msg, err := mail.ReadMessage(mbuf)
 	header := msg.Header
 	filepath := nest(header.Get("Message-Id"))
 	os.MkdirAll(path+"/"+filepath,0777);
-	f,_ := os.Create(path+"/"+filepath+"/orig")
-	defer f.Close()
-	_,err = mbuf.WriteTo(f)
+	os.Link("/tmp/orig", path+"/"+filepath+"/orig")
 	if err != nil {
 		if debug {
 			log.Print(err)

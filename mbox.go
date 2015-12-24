@@ -16,6 +16,7 @@ import (
 	"os"
 	"crypto/sha256"
 	"encoding/hex"
+	"io/ioutil"
 )
 
 const _MAX_LINE_LEN = 1024
@@ -84,8 +85,9 @@ func ReadFile(filename string, path string, debug bool) ([]*mail.Message, error)
 }
 
 func parseAndAppend(mbuf *bytes.Buffer, msgs []*mail.Message, path string, debug bool) []*mail.Message {
-	f,_ := os.Create("/tmp/orig")
-	defer f.Close()
+//todo - error checks
+	f,_ := ioutil.TempFile(os.TempDir(),"")
+	defer os.Remove(f.Name())
         mbuf.WriteTo(f)
 	f.Seek(0,0)
 	mbuf.ReadFrom(f)

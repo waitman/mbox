@@ -90,8 +90,7 @@ func parseAndAppend(mbuf *bytes.Buffer, msgs []*mail.Message, path string, debug
 	filepath := nest(header.Get("Message-Id"))
 	f,_ := os.Create(path+"/"+filepath+"/orig")
 	defer f.Close()
-	jo := bufio.NewWriter(mbuf)
-	n2,_ := f.Write(&jo)
+	n,_ := mbuf.WriteTo(f)
 	if err != nil {
 		if debug {
 			log.Print(err)

@@ -23,12 +23,6 @@ const _MAX_LINE_LEN = 1024
 
 var crlf = []byte{'\r', '\n'}
 
-func check(e error) {
-    if e != nil {
-        panic(e)
-    }
-}
-
 func nest(s string) string {
         hash := sha256.New()
         hash.Write([]byte(s))
@@ -94,9 +88,10 @@ func parseAndAppend(mbuf *bytes.Buffer, msgs []*mail.Message, path string, debug
 	msg, err := mail.ReadMessage(mbuf)
 	header := msg.Header
 	filepath := nest(header.Get("Message-Id"))
-	err := ioutil.WriteFile(path+"/"+filepath+"/orig", mbuf, 0644)
-	check(err)
-
+	f,_ := os.Create(path+"/"+filepath+"/orig")
+	defer f.Close()
+	jo := bufio.NewWriter(mbuf)
+	n2,_ := f.Write(jo))
 	if err != nil {
 		if debug {
 			log.Print(err)

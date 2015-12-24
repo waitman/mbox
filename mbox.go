@@ -5,6 +5,8 @@ package mbox
 // packaged as an app, not a library. Also, we switched to the stdlib mail
 // parser.
 
+// note: this is a modified version - Waitman Gobble <ns@waitman.net> - save original message content 12/24/15
+
 import (
 	"bufio"
 	"bytes"
@@ -12,18 +14,25 @@ import (
 	"log"
 	"net/mail"
 	"os"
-
-	//"github.com/bytbox/go-mail"
+	"crypto/sha256"
+	"encoding/hex"
+	"io/ioutil"
 )
 
 const _MAX_LINE_LEN = 1024
 
 var crlf = []byte{'\r', '\n'}
 
+func check(e error) {
+    if e != nil {
+        panic(e)
+    }
+}
+
 // If debug is true, errors parsing messages will be printed to stderr. If
 // false, they will be ignored. Either way those messages will not appear in
 // the msgs slice.
-func Read(r io.Reader, debug bool) (msgs []*mail.Message, err error) {
+func Read(r io.Reader, path string, debug bool) (msgs []*mail.Message, err error) {
 	var mbuf *bytes.Buffer
 	lastblank := true
 	br := bufio.NewReaderSize(r, _MAX_LINE_LEN)
@@ -33,7 +42,7 @@ func Read(r io.Reader, debug bool) (msgs []*mail.Message, err error) {
 		if len(fs) == 3 && string(fs[0]) == "From" && lastblank {
 			// flush the previous message, if necessary
 			if mbuf != nil {
-				msgs = parseAndAppend(mbuf, msgs, debug)
+				msgs = parseAndAppend(mbuf, msgs, path, debug)
 			}
 			mbuf = new(bytes.Buffer)
 		} else {
@@ -54,7 +63,7 @@ func Read(r io.Reader, debug bool) (msgs []*mail.Message, err error) {
 		l, _, err = br.ReadLine()
 	}
 	if err == io.EOF {
-		msgs = parseAndAppend(mbuf, msgs, debug)
+		msgs = parseAndAppend(mbuf, msgs, path, debug)
 		err = nil
 	}
 	return
@@ -73,8 +82,13 @@ func ReadFile(filename string, debug bool) ([]*mail.Message, error) {
 	return msgs, err
 }
 
-func parseAndAppend(mbuf *bytes.Buffer, msgs []*mail.Message, debug bool) []*mail.Message {
+func parseAndAppend(mbuf *bytes.Buffer, msgs []*mail.Message, path string, debug bool) []*mail.Message {
 	msg, err := mail.ReadMessage(mbuf)
+	header := msg.Header
+	filepath := nest(header.Get("Message-Id"))
+	err := ioutil.WriteFile(path+"/"+filepath+"/orig", mbuf, 0644)
+	check(err)
+
 	if err != nil {
 		if debug {
 			log.Print(err)

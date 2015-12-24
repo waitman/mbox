@@ -85,8 +85,8 @@ func ReadFile(filename string, path string, debug bool) ([]*mail.Message, error)
 
 func parseAndAppend(mbuf *bytes.Buffer, msgs []*mail.Message, path string, debug bool) []*mail.Message {
 	f,_ := os.Create("/tmp/orig")
-        defer f.Close()
         mbuf.WriteTo(f)
+	f.Close()
 	
 	msg, err := mail.ReadMessage(mbuf)
 	header := msg.Header

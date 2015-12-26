@@ -94,6 +94,10 @@ func parseAndAppend(mbuf *bytes.Buffer, msgs []*mail.Message, path string, debug
 	msg, err := mail.ReadMessage(mbuf)
 	header := msg.Header
 	filepath := nest(header.Get("Message-Id")+header.Get("Date"))
+	if _, err := os.Stat(path+"/"+filepath); err == nil {
+		// already exists, bail
+		return msgs
+	}
 	os.MkdirAll(path+"/"+filepath,0777);
 	f.Seek(0,0)
 	w,_ := os.Create(path+"/"+filepath+"/orig")
